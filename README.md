@@ -4,20 +4,17 @@
 A developer whose app uses Pipedream Connect so their end users can link GitHub, Slack, Google and other accounts.
 
 ## Problem
-An end user's connection breaks: they revoke access, change a password, an admin removes the app, or a token refresh fails. Pipedream eventually marks the account unhealthy or dead, on its own schedule. Nobody is told. The end user finds out when their agent or action fails, and the developer finds out from a support ticket.
+An end user's connection breaks: they revoke access, change a password, an admin removes the app, or a token refresh fails. Pipedream eventually marks the account unhealthy or dead, on its own schedule, and sometimes never: if the token still refreshes but calls fail, the account keeps showing healthy. Nobody is told. The end user finds out when their agent or action fails, and the developer finds out from a support ticket.
 
 ## Evidence (how I know)
 - My own work on an integration platform: revoked or expired tokens were the most common production failure, and users usually noticed before we did.
-- Pipedream forum threads asking for this:
-  - [How Can We Receive Notifications Regarding the Health Status of a Connection?](https://pipedream.com/community/t/how-can-we-receive-notifications-regarding-the-health-status-of-a-connection/14302)
-    - Staff reply (unverified): Pipedream doesn't proactively notify Connect developers when end-user accounts become unhealthy, "but it's something we've discussed."
-  - [Why Are User Accounts Being Randomly Disconnected from Slack, Github, and Google Integrations?](https://pipedream.com/community/t/why-are-user-accounts-being-randomly-disconnected-from-slack-github-and-google-integrations/14056)
-  - [How to Handle Unhealthy or Dead Accounts in Pipedream Connect?](https://pipedream.com/community/t/how-to-handle-unhealthy-or-dead-accounts-in-pipedream-connect/13251)
-    - Staff reply (unverified): `healthy: false` "could be temporary and it may recover"; `dead: true` means the connection is "broken and not recoverable" and the user has to reconnect.
-- I checked the Connect dashboard and API (Nov 13): status is there if you go and look; nothing tells you when it changes.
+- I checked the Connect dashboard and API: status is there if you go and look; nothing tells you when it changes.
+- The Connect webhooks docs list only `CONNECTION_SUCCESS` and `CONNECTION_ERROR`, both during connect. No event when a connection breaks later.
+- Pipedream Users Slack, #incidents, Oct 14: a Connect developer reported every Gong action failing for all their customers since Oct 8 ("IP address not permitted") while the accounts still showed healthy. Two customers had no Gong data for about six days before it was raised.
+- Pipedream Users Slack, #bugs, Sep 15: a Connect developer asked for "a recommended health check for detecting invalid Zendesk connection metadata before workflows begin failing." No such check was offered.
 
 ## What exists today (as of Nov 13)
-- Accounts page: Status column with a filter.
+- Accounts page: Status column with a filter (seen in the dashboard).
 - [Accounts API](https://pipedream.com/docs/connect/api-reference/list-accounts): `healthy`, `dead`, `error`, `expires_at`. Pipedream retries unhealthy accounts on its own.
 - [Connect webhooks](https://pipedream.com/docs/connect/webhooks): `CONNECTION_SUCCESS` and `CONNECTION_ERROR`, which only fire while a user is connecting. No event when a connection breaks later.
 - [Connect Link](https://pipedream.com/docs/connect/managed-auth/connect-link): a hosted connect URL for one end user and one app. It expires after 4 hours. The docs don't say whether using it on a dead account repairs that account or creates a new one.
@@ -33,9 +30,12 @@ Time from "account broke" to "developer knows" goes from "when a customer compla
 - **"Close to expiring" alerts.** OAuth access tokens expire and refresh all the time, so this would mostly be noise.
 - **Listing triggers that depend on a broken account.** Useful, but not needed to show the core idea.
 - **Reconnect links for unhealthy accounts.** They may recover without help. Only dead accounts get a link.
+- **Test calls per account.** This version trusts Pipedream's health flag. The Gong case (Slack #incidents, Oct 14) shows an account can show healthy while every call fails. Catching that needs a cheap test request per account, which costs API calls and app-specific endpoints. Next, not now.
 
 ## What I'd do next
-(fill in while building)
+1. A test call per account, so failures the health flag misses (like the Gong case) are caught too.
+2. Talk to five Connect developers: how many broken accounts they have today, and how they find out.
+3. Propose to Pipedream: account health events (unhealthy, dead, recovered) on the existing Connect webhook, so nobody has to poll. Also deployed triggers that disappear (Slack #bugs, Sep 16).
 
 ## How to run
 (fill in once check.mjs exists)
