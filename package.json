@@ -8,16 +8,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/psdjungpulzze/connect-health-alert.git"
+    "url": "git+https://github.com/psdjung/connect-health-alert.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/psdjungpulzze/connect-health-alert/issues"
+    "url": "https://github.com/psdjung/connect-health-alert/issues"
   },
-  "homepage": "https://github.com/psdjungpulzze/connect-health-alert#readme",
+  "homepage": "https://github.com/psdjung/connect-health-alert#readme",
   "dependencies": {
     "@pipedream/sdk": "^3.3.0",
     "dotenv": "^18.0.10"
