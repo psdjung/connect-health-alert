@@ -55,17 +55,36 @@ for (const a of accounts) {
 console.log(`Connect health check, ${fmt(new Date())} (${process.env.PIPEDREAM_PROJECT_ENVIRONMENT})`);
 console.log(`${accounts.length} accounts checked.${previous ? "" : " First run: no previous state to compare with."}\n`);
 
+// One fresh link per broken account per run, shared by both sections below.
+const broken = accounts.filter((a) => a.status !== "healthy");
+const links = new Map();
+for (const a of broken) links.set(a.id, await reconnectLink(a.user, a.app));
+
+const printBroken = (a) => {
+  const link = links.get(a.id);
+  console.log(`  error: ${a.error ?? "(none given)"}`);
+  console.log(`  reconnect link (expires ${fmt(link.expiresAt)}):\n  ${link.url}`);
+};
+
+console.log("Changes");
 if (changes.length === 0) {
-  console.log("No changes since last run.");
+  console.log("No changes since last run.\n");
 } else {
   for (const c of changes) {
     const from = c.before ?? "new";
     console.log(`• ${c.user} / ${c.app} (${c.id}): ${from} → ${c.status}`);
-    if (c.status !== "healthy") {
-      console.log(`  error: ${c.error ?? "(none given)"}`);
-      const link = await reconnectLink(c.user, c.app);
-      console.log(`  reconnect link (expires ${fmt(link.expiresAt)}):\n  ${link.url}`);
-    }
+    if (c.status !== "healthy") printBroken(c);
+    console.log();
+  }
+}
+
+console.log("Still broken");
+if (broken.length === 0) {
+  console.log("None. Every account is healthy.");
+} else {
+  for (const a of broken) {
+    console.log(`• ${a.user} / ${a.app} (${a.id}): ${a.status}`);
+    printBroken(a);
     console.log();
   }
 }

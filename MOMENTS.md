@@ -19,3 +19,9 @@
        worry ("may never notice") was wrong: it noticed, slowly and silently.
        Agent pointed out my rule (links only for dead) leaves John with no link.
        Changed: unhealthy and dead both get a link.
+
+07:00  Built check.mjs. Second run said "No changes" and John vanished, with his
+        4h link already expired. A diff-only report hides accounts that stay broken.
+        Added "Still broken" with a fresh link every run.
+
+07:07  Added "Still broken": every broken account, every run, fresh link. Ran twice: John shows both times.
