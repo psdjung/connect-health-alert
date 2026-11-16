@@ -37,5 +37,8 @@ Time from "account broke" to "developer knows" goes from "when a customer compla
 2. Talk to five Connect developers: how many broken accounts they have today, and how they find out.
 3. Propose to Pipedream: account health events (unhealthy, dead, recovered) on the existing Connect webhook, so nobody has to poll. Also deployed triggers that disappear (Slack #bugs, Sep 16).
 
+## How it works
+`check.mjs` asks Pipedream for every connected account in the project and labels each one healthy, unhealthy or dead. It compares those labels with the ones it saved in `state.json` on the last run. For every account whose label changed, it prints a line such as "john / github: healthy → unhealthy", along with the error Pipedream gives, if any. If an account is now unhealthy or dead, it also creates a fresh reconnect link for that user and app, and shows when the link expires (4 hours later). Finally, it saves the new labels to `state.json`, so the next run reports only what changed since this one.
+
 ## How to run
-(fill in once check.mjs exists)
+`node check.mjs` from the repo folder. Needs a `.env` with PIPEDREAM_CLIENT_ID, PIPEDREAM_CLIENT_SECRET, PIPEDREAM_PROJECT_ID and PIPEDREAM_PROJECT_ENVIRONMENT. Delete `state.json` to start fresh.
