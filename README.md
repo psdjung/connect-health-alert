@@ -4,10 +4,11 @@
 A developer whose app uses Pipedream Connect so their end users can link GitHub, Slack, Google and other accounts.
 
 ## Problem
-An end user's connection breaks: they revoke access, change a password, an admin removes the app, or a token refresh fails. Pipedream eventually marks the account unhealthy or dead, on its own schedule, and sometimes never: if the token still refreshes but calls fail, the account keeps showing healthy. Nobody is told. The end user finds out when their agent or action fails, and the developer finds out from a support ticket.
+An end user's connection breaks: they revoke access, change a password, an admin removes the app, or a token refresh fails. Pipedream eventually marks the account unhealthy or dead, on its own schedule, sometimes only after a long delay. If the token still refreshes but calls fail, the account can keep showing healthy. Nobody is told. The end user finds out when their agent or action fails, and the developer finds out from a support ticket.
 
 ## Evidence (how I know)
 - My own work on an integration platform: revoked or expired tokens were the most common production failure, and users usually noticed before we did.
+- My test: revoked a GitHub account Sat Nov 14 00:17 PT; Pipedream marked it unhealthy Mon Nov 16 06:32 PT, about 54 hours later, with no error text and no notification.
 - I checked the Connect dashboard and API: status is there if you go and look; nothing tells you when it changes.
 - The Connect webhooks docs list only `CONNECTION_SUCCESS` and `CONNECTION_ERROR`, both during connect. No event when a connection breaks later.
 - Pipedream Users Slack, #incidents, Oct 14: a Connect developer reported every Gong action failing for all their customers since Oct 8 ("IP address not permitted") while the accounts still showed healthy. Two customers had no Gong data for about six days before it was raised.
@@ -20,7 +21,7 @@ An end user's connection breaks: they revoke access, change a password, an admin
 - [Connect Link](https://pipedream.com/docs/connect/managed-auth/connect-link): a hosted connect URL for one end user and one app. It expires after 4 hours. The docs don't say whether using it on a dead account repairs that account or creates a new one.
 
 ## Smallest useful thing
-A script that checks every connected account and reports one thing: any status change since the last run (to unhealthy, to dead, or back to healthy). It sends the developer one message listing the changes. Each dead account gets a fresh reconnect link, generated at send time, with its expiry shown, so the developer can forward it to the end user.
+A script that checks every connected account and reports one thing: any status change since the last run (to unhealthy, to dead, or back to healthy). It sends the developer one message listing the changes. Each unhealthy or dead account gets a fresh reconnect link, generated at send time, with its expiry shown, so the developer can forward it to the end user.
 
 ## Success looks like
 Time from "account broke" to "developer knows" goes from "when a customer complains" to "the next check". Later: share of broken accounts reconnected within a day.
@@ -29,7 +30,6 @@ Time from "account broke" to "developer knows" goes from "when a customer compla
 - **Consecutive-check counter.** An unhealthy account may recover on its own, so a production version should only alert once it stays unhealthy across several checks. The demo reports every change and sends a "back to healthy" line when an account recovers.
 - **"Close to expiring" alerts.** OAuth access tokens expire and refresh all the time, so this would mostly be noise.
 - **Listing triggers that depend on a broken account.** Useful, but not needed to show the core idea.
-- **Reconnect links for unhealthy accounts.** They may recover without help. Only dead accounts get a link.
 - **Test calls per account.** This version trusts Pipedream's health flag. The Gong case (Slack #incidents, Oct 14) shows an account can show healthy while every call fails. Catching that needs a cheap test request per account, which costs API calls and app-specific endpoints. Next, not now.
 
 ## What I'd do next

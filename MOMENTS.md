@@ -14,3 +14,8 @@
 00:30  Asked for status after revoke. Both still healthy. Agent pointed out John's GitHub
        token has no expiry, so Pipedream may never notice. My plan's core assumption
        (trust the health flag) may be wrong. Test a real call tomorrow.
+
+06:52  John flipped to unhealthy Mon 06:32 PT, ~54h after revoke, error: null. My 00:30
+       worry ("may never notice") was wrong: it noticed, slowly and silently.
+       Agent pointed out my rule (links only for dead) leaves John with no link.
+       Changed: unhealthy and dead both get a link.
