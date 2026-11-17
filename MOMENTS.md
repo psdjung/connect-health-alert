@@ -24,3 +24,30 @@
        A second Claude reviewing the code flagged it; I reproduced it before fixing.
        
 07:06  Added "Still broken": every broken account, every run, fresh link. John shows both runs.
+
+23:20  (Mon) The "test a real call" from 00:30. One read-only call as John, two ways:
+       Proxy GET /user: HTTP 401, GitHub's "Bad credentials" passed through as-is.
+       Action github-get-current-user: HTTP 200, the same 401 only inside the body
+       (error, attribution origin "unknown"). A status-only check would call it a success.
+       Neither gave a reconnect link or a Pipedream error code. John's flag didn't move
+       (unhealthy, error: null). A test call sees the break in a second; the flag doesn't.
+       Backs "test call per account" as next step 1. Response below.
+       Added probe.mjs (read-only, GitHub only) so the demo shows this live: 401 in 0.1s.
+
+## Response
+```JSON
+{
+  "os": [ { "k": "error", "err": { "name": "HttpError", "status": 401, ... } } ],
+  "exports": {},
+  "error": {
+    "name": "HttpError",
+    "status": 401,
+    "request":  { "method": "GET", "url": "https://api.github.com/user/orgs", ... },
+    "response": { "status": 401, "data": { "message": "Bad credentials", "status": "401" } },
+    "message": "Bad credentials - https://docs.github.com/rest",
+    "stack": "HttpError: Bad credentials ... get-current-user.mjs:26:9 ...",
+    "attribution": { "origin": "unknown", "network_calls_count": 3, "last_call": { "host": "api.github.com" } }
+  },
+  "t": { ... }
+}
+```

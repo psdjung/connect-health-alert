@@ -34,7 +34,7 @@ Time from "account broke" to "developer knows" goes from "when a customer compla
 - **Slack digest.** The terminal output proves the idea; sending it is one more step.
 
 ## What I'd do next
-1. A test call per account, so failures the health flag misses (like the Gong case) are caught too.
+1. A test call per account, so failures the health flag misses (like the Gong case) are caught too. `probe.mjs` is a first look, GitHub only: one read-only `GET /user` through the Connect proxy per GitHub account, printed next to the health flag. For John it returns GitHub's 401 in a tenth of a second, while the flag took about 54 hours and still gives no error text. It writes nothing.
 2. Talk to five Connect developers: how many broken accounts they have today, and how they find out.
 3. If I were in the seat, I'd explore account health events (unhealthy, dead, recovered) on the existing Connect webhook, so nobody has to poll. Also deployed triggers that disappear (Slack #bugs, Sep 16).
 
@@ -42,4 +42,4 @@ Time from "account broke" to "developer knows" goes from "when a customer compla
 `check.mjs` asks Pipedream for every connected account in the project and labels each one healthy, unhealthy or dead. It compares those labels with the ones it saved in `state.json` on the last run. Under "Changes", it prints a line for every account whose label changed, such as "john / github: healthy → unhealthy", along with the error Pipedream gives, if any. Under "Still broken", it lists every account that is unhealthy or dead right now, on every run, whether or not it changed. Each broken account gets a fresh reconnect link for that user and app, created on every run and shown with its expiry time (4 hours later), so there is always a working link to forward. Finally, it saves the new labels to `state.json`, so the next run's "Changes" covers only what changed since this one.
 
 ## How to run
-`node check.mjs` from the repo folder. Needs a `.env` with PIPEDREAM_CLIENT_ID, PIPEDREAM_CLIENT_SECRET, PIPEDREAM_PROJECT_ID and PIPEDREAM_PROJECT_ENVIRONMENT. Delete `state.json` to start fresh.
+`node check.mjs` from the repo folder. Needs a `.env` with PIPEDREAM_CLIENT_ID, PIPEDREAM_CLIENT_SECRET, PIPEDREAM_PROJECT_ID and PIPEDREAM_PROJECT_ENVIRONMENT. Delete `state.json` to start fresh. `node probe.mjs` runs the GitHub test call.
