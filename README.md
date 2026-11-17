@@ -21,21 +21,22 @@ An end user's connection breaks: they revoke access, change a password, an admin
 - [Connect Link](https://pipedream.com/docs/connect/managed-auth/connect-link): a hosted connect URL for one end user and one app. It expires after 4 hours. The docs don't say whether using it on a dead account repairs that account or creates a new one.
 
 ## Smallest useful thing
-A script that checks every connected account and reports one thing: any status change since the last run (to unhealthy, to dead, or back to healthy). It sends the developer one message listing the changes. Each unhealthy or dead account gets a fresh reconnect link, generated at send time, with its expiry shown, so the developer can forward it to the end user.
+A script that checks every connected account and prints two lists in the terminal: any status change since the last run (to unhealthy, to dead, or back to healthy), and every account that is still unhealthy or dead. Each unhealthy or dead account gets a fresh reconnect link on every run, with its expiry shown, so the developer can forward it to the end user. No Slack message yet.
 
 ## Success looks like
 Time from "account broke" to "developer knows" goes from "when a customer complains" to "the next check". Later: share of broken accounts reconnected within a day.
 
 ## What I cut and why
-- **Consecutive-check counter.** An unhealthy account may recover on its own, so a production version should only alert once it stays unhealthy across several checks. The demo reports every change and sends a "back to healthy" line when an account recovers.
+- **Consecutive-check counter.** An unhealthy account may recover on its own, so a production version should only alert once it stays unhealthy across several checks. The demo reports every change and prints a "back to healthy" line when an account recovers.
 - **"Close to expiring" alerts.** OAuth access tokens expire and refresh all the time, so this would mostly be noise.
 - **Listing triggers that depend on a broken account.** Useful, but not needed to show the core idea.
 - **Test calls per account.** This version trusts Pipedream's health flag. The Gong case (Slack #incidents, Oct 14) shows an account can show healthy while every call fails. Catching that needs a cheap test request per account, which costs API calls and app-specific endpoints. Next, not now.
+- **Slack digest.** The terminal output proves the idea; sending it is one more step.
 
 ## What I'd do next
 1. A test call per account, so failures the health flag misses (like the Gong case) are caught too.
 2. Talk to five Connect developers: how many broken accounts they have today, and how they find out.
-3. Propose to Pipedream: account health events (unhealthy, dead, recovered) on the existing Connect webhook, so nobody has to poll. Also deployed triggers that disappear (Slack #bugs, Sep 16).
+3. If I were in the seat, I'd explore account health events (unhealthy, dead, recovered) on the existing Connect webhook, so nobody has to poll. Also deployed triggers that disappear (Slack #bugs, Sep 16).
 
 ## How it works
 `check.mjs` asks Pipedream for every connected account in the project and labels each one healthy, unhealthy or dead. It compares those labels with the ones it saved in `state.json` on the last run. Under "Changes", it prints a line for every account whose label changed, such as "john / github: healthy → unhealthy", along with the error Pipedream gives, if any. Under "Still broken", it lists every account that is unhealthy or dead right now, on every run, whether or not it changed. Each broken account gets a fresh reconnect link for that user and app, created on every run and shown with its expiry time (4 hours later), so there is always a working link to forward. Finally, it saves the new labels to `state.json`, so the next run's "Changes" covers only what changed since this one.
