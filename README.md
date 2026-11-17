@@ -30,7 +30,7 @@ Time from "account broke" to "developer knows" goes from "when a customer compla
 - **Consecutive-check counter.** An unhealthy account may recover on its own, so a production version should only alert once it stays unhealthy across several checks. The demo reports every change and prints a "back to healthy" line when an account recovers.
 - **"Close to expiring" alerts.** OAuth access tokens expire and refresh all the time, so this would mostly be noise.
 - **Listing triggers that depend on a broken account.** Useful, but not needed to show the core idea.
-- **Test calls per account.** This version trusts Pipedream's health flag. The Gong case (Slack #incidents, Oct 14) shows an account can show healthy while every call fails. Catching that needs a cheap test request per account, which costs API calls and app-specific endpoints. Next, not now.
+- **Test calls per account.** This version trusts Pipedream's health flag. The Gong case (Slack #incidents, Oct 14) shows an account can show healthy while every call fails. Catching that needs a cheap test request per account, which costs API calls and app-specific endpoints. `check.mjs` doesn't make one. `probe.mjs` is a GitHub-only probe, kept as evidence of the gap, not wired into the check.
 - **Slack digest.** The terminal output proves the idea; sending it is one more step.
 
 ## What I'd do next
